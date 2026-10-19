@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Invoice & Kwitansi Interaktif</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .paper {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 900px;
+            margin: auto;
+        }
+        .invoice-header, .kwitansi-header {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .kwitansi-border {
+            border: 2px dashed #6c757d;
+            padding: 25px;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        /* Custom Styling untuk Print */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #fff;
+            }
+            .paper {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .form-control, .form-select {
+                border: none !important;
+                background-color: transparent !important;
+                padding: 0 !important;
+            }
+            .kwitansi-border {
+                border: 2px solid #000;
+            }
+        }
+    </style>
+</head>
+<body class="py-4">
+
+<div class="container">
+    <!-- Navigasi Tab & Action Buttons -->
+    <div class="row mb-4 no-print align-items-center">
+        <div class="col-md-6">
+            <ul class="nav nav-pills" id="docTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold" id="invoice-tab" data-bs-toggle="tab" data-bs-target="#invoice-panel" type="button" role="tab">
+                        <i class="bi bi-file-earmark-text me-1"></i> Nota / Invoice
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="kwitansi-tab" data-bs-toggle="tab" data-bs-target="#kwitansi-panel" type="button" role="tab">
+                        <i class="bi bi-receipt me-1"></i> Kwitansi
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-6 text-end">
+            <button onclick="window.print()" class="btn btn-success me-2">
+                <i class="bi bi-printer me-1"></i> Cetak / Simpan PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="tab-content" id="docTabContent">
+        
+        <!-- ================= INVOICE / NOTA PANEL ================= -->
+        <div class="tab-pane fade show active" id="invoice-panel" role="tabpanel">
+            <div class="paper">
+                <!-- Header Invoice -->
+                <div class="row invoice-header align-items-center">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control form-control-lg fw-bold text-primary border-0 p-0 fs-3" value="NAMA TOKO / PERUSAHAAN" placeholder="Nama Perusahaan">
+                        <textarea class="form-control border-0 p-0 text-muted fs-7" rows="2" placeholder="Alamat & Kontak Perusahaan">Jl. Mawar No. 123, Jakarta&#10;Telp: 0812-3456-7890 | Email: info@toko.com</textarea>
+                    </div>
+                    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                        <h2 class="text-uppercase fw-bold text-secondary">INVOICE</h2>
+                        <div class="d-flex justify-content-md-end align-items-center gap-2 mb-1">
+                            <label class="fw-bold fs-7">No. Invoice:</label>
+                            <input type="text" class="form-control form-control-sm text-end" style="width: 150px;" value="INV/2026/001">
+                        </div>
+                        <div class="d-flex justify-content-md-end align-items-center gap-2">
+                            <label class="fw-bold fs-7">Tanggal:</label>
+                            <input type="date" id="invoice-date" class="form-control form-control-sm text-end" style="width: 150px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Pelanggan -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card card-body bg-light border-0">
+                            <h6 class="fw-bold text-primary mb-2">Kepada Yth:</h6>
+                            <input type="text" class="form-control form-control-sm mb-1 fw-semibold" placeholder="Nama Pelanggan / Perusahaan" value="PT. Pelanggan Setia">
+                            <textarea class="form-control form-control-sm" rows="2" placeholder="Alamat Pelanggan">Jl. Melati No. 45, Bandung</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabel Item -->
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle" id="invoice-table">
+                        <thead class="table-primary text-center">
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 45%;">Deskripsi Barang / Jasa</th>
+                                <th style="width: 12%;">Qty</th>
+                                <th style="width: 18%;">Harga Satuan (Rp)</th>
+                                <th style="width: 20%;">Total (Rp)</th>
+                                <th class="no-print" style="width: 5%;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="item-list">
+                            <!-- Item row akan di-generate via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mb-3 no-print">
+                    <button class="btn btn-outline-primary btn-sm" onclick="addItem()">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Baris
+                    </button>
+                </div>
+
+                <!-- Kalkulasi / Ringkasan Pembayaran -->
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="fw-bold align-middle">Subtotal:</td>
+                                <td class="text-end fw-bold align-middle">
+                                    Rp <span id="subtotal-display">0</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold align-middle">Diskon (%):</td>
+                                <td class="text-end align-middle">
+                                    <div class="input-group input-group-sm ms-auto" style="width: 120px;">
+                                        <input type="number" id="discount-percent" class="form-control text-end" value="0" min="0" max="100" oninput="calculateTotal()">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold align-middle">PPN (%):</td>
+                                <td class="text-end align-middle">
+                                    <div class="input-group input-group-sm ms-auto" style="width: 120px;">
+                                        <input type="number" id="tax-percent" class="form-control text-end" value="11" min="0" oninput="calculateTotal()">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="border-top border-2">
+                                <td class="fw-bold fs-5 align-middle text-primary">Total Akhir:</td>
+                                <td class="text-end fw-bold fs-5 align-middle text-primary">
+                                    Rp <span id="grandtotal-display">0</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tanda Tangan & Catatan -->
+                <div class="row mt-5 pt-3">
+                    <div class="col-md-7">
+                        <label class="fw-bold text-muted fs-7">Catatan / Metode Pembayaran:</label>
+                        <textarea class="form-control border-0 bg-light fs-7" rows="3" placeholder="Contoh: Transfer via BCA 123456789 a.n Toko Saya">Transfer via BCA 123-456-7890 a/n Toko Saya.&#10;Pembayaran jatuh tempo dalam 14 hari.</textarea>
+                    </div>
+                    <div class="col-md-5 text-center mt-4 mt-md-0">
+                        <p class="mb-5 fw-bold">Hormat Kami,</p>
+                        <p class="mt-4 mb-0 border-bottom d-inline-block px-4 fw-bold">( .................................... )</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= KWITANSI PANEL ================= -->
+        <div class="tab-pane fade" id="kwitansi-panel" role="tabpanel">
+            <div class="paper">
+                <div class="kwitansi-border">
+                    <div class="row kwitansi-header align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="fw-bold text-success m-0"><i class="bi bi-check-circle me-2"></i>KWITANSI</h3>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="d-flex justify-content-md-end align-items-center gap-2">
+                                <label class="fw-bold fs-7">No:</label>
+                                <input type="text" class="form-control form-control-sm text-end" style="width: 150px;" value="KWT/2026/001">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 d-flex align-items-center">
+                            <label class="fw-bold" style="width: 180px;">Telah Diterima Dari</label>
+                            <span class="me-2">:</span>
+                            <input type="text" class="form-control form-control-sm" value="PT. Pelanggan Setia">
+                        </div>
+                        <div class="col-12 d-flex align-items-center">
+                            <label class="fw-bold" style="width: 180px;">Uang Sejumlah</label>
+                            <span class="me-2">:</span>
+                            <div class="bg-light p-2 rounded w-100 fw-italic fst-italic border" id="kwitansi-terbilang">
+                                Zero Rupiah
+                            </div>
+                        </div>
+                        <div class="col-12 d-flex align-items-start">
+                            <label class="fw-bold" style="width: 180px;">Untuk Pembayaran</label>
+                            <span class="me-2">:</span>
+                            <textarea class="form-control form-control-sm" rows="2" placeholder="Keterangan pembayaran...">Pembayaran Invoice No: INV/2026/001</textarea>
+                        </div>
+                        <div class="col-12 d-flex align-items-center">
+                            <label class="fw-bold" style="width: 180px;">Jumlah Nominal</label>
+                            <span class="me-2">:</span>
+                            <div class="input-group input-group-sm" style="max-width: 300px;">
+                                <span class="input-group-text fw-bold">Rp</span>
+                                <input type="number" id="kwitansi-amount" class="form-control fw-bold fs-6 text-end" value="0" oninput="updateTerbilang()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-5">
+                        <div class="col-md-6 offset-md-6 text-center">
+                            <input type="text" class="form-control form-control-sm text-center border-0 bg-transparent mb-1" id="kwitansi-location-date" value="Jakarta, 19 Oktober 2026">
+                            <p class="mb-5 fw-bold">Penerima,</p>
+                            <p class="mt-4 mb-0 border-bottom d-inline-block px-4 fw-bold">( .................................... )</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Set Tanggal Hari ini
+    document.addEventListener("DOMContentLoaded", function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('invoice-date').value = today;
+        
+        // Tambah 2 item default
+        addItem("Laptop Asus Vivobook", 1, 8500000);
+        addItem("Mouse Wireless", 2, 150000);
+    });
+
+    // --- LOGIKA NOTA / INVOICE ---
+    function addItem(name = "", qty = 1, price = 0) {
+        const tbody = document.getElementById('item-list');
+        const rowCount = tbody.rows.length + 1;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="text-center row-number">${rowCount}</td>
+            <td><input type="text" class="form-control form-control-sm item-name" value="${name}" placeholder="Nama barang/jasa"></td>
+            <td><input type="number" class="form-control form-control-sm text-center item-qty" value="${qty}" min="1" oninput="calculateTotal()"></td>
+            <td><input type="number" class="form-control form-control-sm text-end item-price" value="${price}" min="0" oninput="calculateTotal()"></td>
+            <td class="text-end fw-semibold align-middle">Rp <span class="item-subtotal">0</span></td>
+            <td class="text-center no-print align-middle">
+                <button class="btn btn-outline-danger btn-sm p-1 lh-1" onclick="removeItem(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        calculateTotal();
+    }
+
+    function removeItem(button) {
+        const row = button.closest('tr');
+        row.remove();
+        updateRowNumbers();
+        calculateTotal();
+    }
+
+    function updateRowNumbers() {
+        const rows = document.querySelectorAll('#item-list tr');
+        rows.forEach((row, index) => {
+            row.querySelector('.row-number').textContent = index + 1;
+        });
+    }
+
+    function formatNumber(num) {
+        return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    function calculateTotal() {
+        const rows = document.querySelectorAll('#item-list tr');
+        let subtotal = 0;
+
+        rows.forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const itemSubtotal = qty * price;
+            
+            row.querySelector('.item-subtotal').textContent = formatNumber(itemSubtotal);
+            subtotal += itemSubtotal;
+        });
+
+        const discountPercent = parseFloat(document.getElementById('discount-percent').value) || 0;
+        const taxPercent = parseFloat(document.getElementById('tax-percent').value) || 0;
+
+        const discountAmount = subtotal * (discountPercent / 100);
+        const subtotalAfterDiscount = subtotal - discountAmount;
+        const taxAmount = subtotalAfterDiscount * (taxPercent / 100);
+        const grandTotal = subtotalAfterDiscount + taxAmount;
+
+        document.getElementById('subtotal-display').textContent = formatNumber(subtotal);
+        document.getElementById('grandtotal-display').textContent = formatNumber(grandTotal);
+
+        // Auto sync total invoice ke nominal kwitansi
+        document.getElementById('kwitansi-amount').value = Math.round(grandTotal);
+        updateTerbilang();
+    }
+
+    // --- LOGIKA TERBILANG KWITANSI ---
+    function terbilang(nilai) {
+        nilai = Math.floor(Math.abs(nilai));
+        const huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+        let temp = "";
+
+        if (nilai < 12) {
+            temp = " " + huruf[nilai];
+        } else if (nilai < 20) {
+            temp = terbilang(nilai - 10) + " Belas";
+        } else if (nilai < 100) {
+            temp = terbilang(Math.floor(nilai / 10)) + " Puluh" + terbilang(nilai % 10);
+        } else if (nilai < 200) {
+            temp = " Seratus" + terbilang(nilai - 100);
+        } else if (nilai < 1000) {
+            temp = terbilang(Math.floor(nilai / 100)) + " Ratus" + terbilang(nilai % 100);
+        } else if (nilai < 2000) {
+            temp = " Seribu" + terbilang(nilai - 1000);
+        } else if (nilai < 1000000) {
+            temp = terbilang(Math.floor(nilai / 1000)) + " Ribu" + terbilang(nilai % 1000);
+        } else if (nilai < 1000000000) {
+            temp = terbilang(Math.floor(nilai / 1000000)) + " Juta" + terbilang(nilai % 1000000);
+        } else if (nilai < 1000000000000) {
+            temp = terbilang(Math.floor(nilai / 1000000000)) + " Milyar" + terbilang(nilai % 1000000000);
+        }
+        return temp;
+    }
+
+    function updateTerbilang() {
+        const amount = parseFloat(document.getElementById('kwitansi-amount').value) || 0;
+        const textContainer = document.getElementById('kwitansi-terbilang');
+        
+        if (amount === 0) {
+            textContainer.textContent = "Nol Rupiah";
+        } else {
+            const hasilTerbilang = terbilang(amount).trim() + " Rupiah";
+            textContainer.textContent = hasilTerbilang;
+        }
+    }
+</script>
+</body>
+</html>
